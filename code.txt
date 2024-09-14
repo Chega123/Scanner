@@ -15,7 +15,7 @@ g h i j l m
 hola_mundo = 5_cs;             // Id valido
 inv@lido_identificador = 10; // Id invalido (contiene @)
 
-INV+c        //fallo por no tener el + en medio del id  (no se si se puede sumar con strings si se puede habria q revisar el tema del +)
+INV+c       
 quj_C_v = 42;               // Id valido con números y guion bajo
 
 //que basi
