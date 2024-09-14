@@ -148,7 +148,7 @@ void scanner(char* buffer) {
         else if (Find_char(letter) == true) {
             bool valid_identifier = true;
             while (Find_char(peek_char()) == true || Find_int(peek_char()) == true || !Find_symbol(peek_char())==true) {
-                word += get_char();  // 
+                word += get_char();  // si encuentra algo que no cuadra, tipo un simbolo que no pertenece al alfabeto
                 if (!Find_char(peek_actual_char()) && !Find_int(peek_actual_char())) {
                     valid_identifier = false;
                 }
