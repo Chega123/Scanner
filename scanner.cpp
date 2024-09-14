@@ -169,6 +169,25 @@ void scanner(char* buffer) {
                 cout << "Error: Identificador inválido '" << word << endl;
             }
         }
+
+        else if (Find_int(letter) == true) {
+            bool valid_identifier = true;
+            while (Find_int(peek_char()) == true || !Find_symbol(peek_char())) {
+                word += get_char();
+                // Si encontramos algo que no es un número ni un símbolo permitido, es error
+                if (!Find_int(peek_actual_char()) && !Find_symbol(peek_actual_char())) {
+                    valid_identifier = false;
+                }
+            }
+            word += get_char();  // Añadir el último carácter leído
+            if (valid_identifier) {
+                cout << word << " TOKEN_NUM" << endl;
+            }
+            else {
+                cout << "Error: Número inválido '" << word << endl;
+            }
+        }
+
         else if (letter == '/') {
             if (peek_char() == '*') {
                 get_char();
@@ -179,7 +198,7 @@ void scanner(char* buffer) {
                 }
                 get_char();
                 get_char();
-                cout << tokens_list[word] << endl;
+                cout << tokens_list["*/"] << endl;
             }
             else if (peek_char() == '/') {
                 get_char();
