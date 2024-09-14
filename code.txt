@@ -1,0 +1,18 @@
+// Este es un comentario de una línea
+
+boolean hola = true;        // Declaración de una variable booleana
+integer num = 123;          // Declaración de un entero
+char c = 'a';               // Declaración de un carácter
+string str = "hello world"; // Declaración de una cadena
+
+// Comentario de bloque
+/*
+Este es un comentario de bloque.
+Se puede escribir en varias líneas.
+*/
+
+hola_mundo = 5;             // Identificador válido
+inv@lido_identificador = 10; // Identificador inválido (contiene @)
+
+INV+c
+quj_C_v = 42;               // Identificador válido con números y guion bajo
