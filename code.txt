@@ -1,21 +1,22 @@
 // Este es un comentario de una línea
 
-boolean hola = true;        // Declaración de una variable booleana
-integer num = 123+2;          // Declaración de un entero
-char c = 'a';               // Declaración de un carácter
-string str = "hello world"; // Declaración de una cadena
+boolean hola = true;        // bool
+integer num = 123+2;          // int
+char c = 'a';               // char
+string str = "hello world"; // string
 
 // Comentario de bloque
 /*
-Este es un comentario de bloque.
-Se puede escribir en varias líneas.
+Comentario en bloque
+a b c d e f
+g h i j l m
 */
 
-hola_mundo = 5_cs;             // Identificador válido
-inv@lido_identificador = 10; // Identificador inválido (contiene @)
+hola_mundo = 5_cs;             // Id valido
+inv@lido_identificador = 10; // Id invalido (contiene @)
 
-INV+c
-quj_C_v = 42;               // Identificador válido con números y guion bajo
+INV+c        //fallo por no tener el + en medio del id  (no se si se puede sumar con strings si se puede habria q revisar el tema del +)
+quj_C_v = 42;               // Id valido con números y guion bajo
 
 //que basi
 /*  dsadasdsa */
