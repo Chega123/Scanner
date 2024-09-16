@@ -1,22 +1,7 @@
 #include <iostream>
-#include <cctype>  // for isalpha, isdigit
-#include <unordered_set>
 #include <fstream>
 
 #include "scanner.hpp"
-
-bool scanner::valid_char(char c) {
-  return (isalpha(c) || c == '_');
-}
-
-bool scanner::valid_int(char c) {
-  return isdigit(c);
-}
-
-bool scanner::valid_symbol(char a) {
-  const std::unordered_set<char> symbols = {'[', ']', '+', '-', '*', '/', '%', '=', '!', '&', '|', '<', '>', ';', ' ', '\'', '\"', ','};
-  return symbols.find(a) != symbols.end();
-}
 
 void scanner::load_content(const std::string& filename) {
   std::ifstream file(filename, std::ios::binary | std::ios::ate);
@@ -47,8 +32,8 @@ char scanner::getchar() {
   return '\0';
 }
 
-char scanner::peekchar() {
-  int next = index + 1;
+char scanner::peekchar(size_t peek) {
+  size_t next = index + peek;
   if (next < content_size)
   return content[next];
   return '\0';

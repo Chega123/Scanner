@@ -1,7 +1,21 @@
-#include <map>
-#include <string>
+#include "language.hpp"
+#include <cctype>  // for isalpha, isdigit
 
-static const std::map<std::string, std::string> tokens_list = {
+bool b_minor::valid_char(char c) {
+  return (isalpha(c) || c == '_');
+}
+
+bool b_minor::valid_int(char c) {
+  return isdigit(c);
+}
+
+bool b_minor::valid_symbol(char a) {
+  return symbols.find(a) != symbols.end();
+}
+
+const std::unordered_set<char> symbols = {'[', ']', '+', '-', '*', '/', '%', '=', '!', '&', '|', '<', '>', ';', ' ', '\'', '\"', ','};
+
+const std::map<std::string, std::string> b_minor::token_list = {
   {"boolean", "TOKEN_BOOLEAN"},
   {"char", "TOKEN_CHAR"},
   {"array", "TOKEN_ARRAY"},
