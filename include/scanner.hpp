@@ -9,23 +9,28 @@
 
 class scanner {
 private:
-  std::unique_ptr<char[]> scanner_pointer;
+  size_t content_size, index;
   std::string content;
-  size_t content_size;
-  size_t index;
-
   b_minor language;
 
+  bool valid_char(char);
+  bool valid_int(char);
+  bool valid_symbol(char);
+
+  bool is_identifier(size_t,classified_word&);
+  bool is_comment(size_t,classified_word&);
+  bool is_keyword(size_t,classified_word&);
+  bool load_content(const std::string&);
+
 //devuelve el siguiente carácter del input y mueve el puntero del carácter al siguiente.
-  char getchar();
+  char get_char();
 //devuelve el siguiente carácter sin mover el puntero.
-  char peekchar(size_t=0);
+  char peek_char(size_t=0);
 
 public:
 //llama al scanner 
   scanner_output gettoken();
-//carga el contenido desde archivo
-  void load_content(const std::string&);
+  scanner(const std::string&);
 };
 
 #endif 

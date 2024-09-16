@@ -9,11 +9,10 @@
 class b_minor {
 private:
 public:
-  static const std::map<std::string, std::string> token_list;
+  static const std::map<std::string, std::string> literal_tokens;
+  static const std::map<std::string, std::string> keywords;
+  static const std::map<std::string, std::string> types;
   static const std::unordered_set<char> symbols;
-  bool valid_char(char);
-  bool valid_int(char);
-  bool valid_symbol(char);
 };
 
 #endif 
