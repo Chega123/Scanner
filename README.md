@@ -1,7 +1,3 @@
 # Scanner
 
-faltan las funciones para hallar los simbolos como el +,-,*,etc por separado, tmb el imprimir mejor con lo de la lineas y no recuerdo que mas habria que buscar
-
-Funciona: Comentarios, id, palabras reservadas
-
-Probar varias cosas porque la verdad no toy seguro si me olvide algo xd
+falta nomas lo de lineas y columnas, y el txt bueno para no matarme le pedia a la IA q me diera un poco de todos los casos segun la pagina xd, parece funcionar bien 
