@@ -41,6 +41,8 @@ map<string, string> tokens_list = {
 
     pair<string,string>("[","TOKEN_["),
     pair<string,string>("]","TOKEN_]"),
+    pair<string,string>("(","TOKEN_("),
+    pair<string,string>(")","TOKEN_)"),
     pair<string,string>("++","TOKEN_++"),
     pair<string,string>("--","TOKEN_--"),
     pair<string,string>("-","TOKEN_NEGNUM"),
@@ -55,34 +57,39 @@ map<string, string> tokens_list = {
     pair<string,string>("<=","TOKEN_<="),
     pair<string,string>(">","TOKEN_>"),
     pair<string,string>(">=","TOKEN_>="),
-    pair<string,string>("==","TOKEN_WHILE"),
-    pair<string,string>("!=","TOKEN_WHILE"),
-    pair<string,string>("=","TOKEN_WHILE"),
+    pair<string,string>("==","TOKEN_=="),
+    pair<string,string>("\\n","TOKEN_\\n"),
+    pair<string,string>("!=","TOKEN_!="),
+    pair<string,string>("=","TOKEN_="),
     pair<string,string>("&&","TOKEN_AND"),
     pair<string,string>("||","TOKEN_OR"),
-    pair<string,string>(";","TOKEN_END"),
+    pair<string,string>(";","TOKEN_;"),
     pair<string,string>("\'","TOKEN_COMILLA"),
     pair<string,string>("\"","TOKEN_COMILLA_DOBLE"),
-    pair<string,string>(",","TOKEN_SEPARATION"),
+    pair<string,string>(",","TOKEN_,"),
     pair<string,string>("//","TOKEN_COMLINE"),
+    pair<string,string>("{","TOKEN_{"),
+    pair<string,string>("}","TOKEN_}"),
+    pair<string,string>(":","TOKEN_:"),
     pair<string,string>("/*","TOKEN_COMBLOCKS"), //COMMENT BLOCK START
     pair<string,string>("*/","TOKEN_COMBLOCKE"), //   ''    ''   END
 
 };
 
 bool Find_char(char a) {
-    if (int(a) > 64 && int(a) < 91 || int(a) > 96 && int(a) < 122 || int(a) == 95) { return true; }
+    if (isalpha(a)|| int(a) == 95) { return true; }
     else return false;  //revisa que sea char permitido
 }
 
 bool Find_int(char a) {
-    if (int(a) > 47 && int(a) < 58) { return true; }
+    if (isdigit(a)) { return true; }
     else return false;
 } // revisa que sea int permitido
 
 bool Find_symbol(char a) {  //lo mismo pero para simbolos ya que tipo para errores de id como hol@c deberia salir fallo pero cortaba de frente en el hol, asi q con esto
     //quiero hacer que los lea normal pero cuando es uno de estos simbolos pues que sepa q es un simbolo que si es perteneciente al lenguaje por lo que puede tener otro token
-    string symbols = "[]+-*/%=!&|<>; \'\",";
+    string symbols = "[]+-*/%=!&|<>;:{}() \'\",\n\r\0\\";
+    if (a == '\0') return true;
     return symbols.find(a) != string::npos;
 }
 
@@ -132,10 +139,8 @@ char peek_actual_char() {
 void scanner(char* buffer) {
     string word;
     char letter;
-    cout << index << endl;
-    cout << sizee << endl;
     while (index < sizee) {
-        
+
         letter = peek_actual_char();
         word = "";
         if (letter == '#') { break; }
@@ -147,39 +152,39 @@ void scanner(char* buffer) {
         }
         else if (Find_char(letter) == true) {
             bool valid_identifier = true;
-            while (Find_char(peek_char()) == true || Find_int(peek_char()) == true || !Find_symbol(peek_char())==true) {
-                word += get_char();  // si encuentra algo que no cuadra, tipo un simbolo que no pertenece al alfabeto
+            while (Find_char(peek_char()) == true || Find_int(peek_char()) == true || Find_symbol(peek_char()) == false) {
+                word += get_char();
+                col_global++;// si encuentra algo que no cuadra, tipo un simbolo que no pertenece al alfabeto
                 if (!Find_char(peek_actual_char()) && !Find_int(peek_actual_char())) {
                     valid_identifier = false;
                 }
             }
-
             word += get_char();
+            col_global++;
             if (tokens_list.find(word) != tokens_list.end()) {
                 cout << tokens_list[word] << endl;
             }
 
             else if (valid_identifier) { //si es valido se guarda como id
                 cout << word << " TOKEN_ID" << endl;
-                //   tokens.push_back(token("TOKEN_ID", word, line_global, col_global));
             }
-            else { // sino fallo
-                //tocaria crear algun lugar donde guardar los errores y hacer el conteo de lineas y columnas q es en si solo ir aumentando la columna
-                //y cuando encuentre un \n pues q reinicie col y aumente linea
+            else { 
                 cout << "Error: Identificador inválido '" << word << endl;
             }
         }
 
         else if (Find_int(letter) == true) {
             bool valid_identifier = true;
-            while (Find_int(peek_char()) == true || !Find_symbol(peek_char())) {
+            while (Find_int(peek_char()) == true || Find_symbol(peek_char()) == false) {
                 word += get_char();
+                col_global++;
                 // Si encontramos algo que no es un número ni un símbolo permitido, es error
                 if (!Find_int(peek_actual_char()) && !Find_symbol(peek_actual_char())) {
                     valid_identifier = false;
                 }
             }
-            word += get_char();  // Añadir el último carácter leído
+            word += get_char();
+            col_global++;// Añadir el último carácter leído
             if (valid_identifier) {
                 cout << word << " TOKEN_NUM" << endl;
             }
@@ -188,56 +193,304 @@ void scanner(char* buffer) {
             }
         }
 
+        else if (letter == ' ') {
+            get_char();
+        }
         else if (letter == '/') {
             if (peek_char() == '*') {
-                get_char();
-                get_char();
-                cout << tokens_list["/*"] << endl;
-                while (peek_char() != '/' && peek_actual_char() != '*') {
+                word += get_char();
+                word += get_char();
+                cout << tokens_list[word] << endl;
+                int nested_com = 1;
+                while (nested_com > 0) {
                     get_char();
+                    col_global++;
+                    if (peek_char() == '*' && peek_actual_char() == '/') { // inicio de comentarios anidados 
+                        get_char();
+                        get_char();
+                        col_global++;
+                        nested_com++;
+                    }
+                    else if (peek_char() == '/' && peek_actual_char() == '*') { // fin de comentarios anidados
+                        get_char(); 
+                        get_char();
+                        col_global++;
+                        nested_com--;
+                    }
                 }
-                get_char();
-                get_char();
-                cout << tokens_list["*/"] << endl;
+                word = "*/";
+                cout << tokens_list[word] << endl;
             }
             else if (peek_char() == '/') {
-                get_char();
-                get_char();  //porque son 2 simbolos
-                cout << tokens_list["//"] << endl;
+                word += get_char();
+                col_global++;
+                word += get_char();
+                col_global++;//porque son 2 simbolos
+                cout << tokens_list[word] << endl;
                 while (peek_actual_char() != '\n') {
-                    get_char();  //salta todo hasta q termine la linea
+                    get_char();
+                    col_global++;//salta todo hasta q termine la linea
                 }
             }
-            else { cout << tokens_list[to_string(letter)] << endl; }
+            else { word += get_char(); col_global++; cout << tokens_list[word] << endl; }
         }
-        else {
-            get_char(); //por ahora que estoy probando y sin esto se queda en bucle
+        else if (letter == '\\') {
+            if (peek_char() == 'n') {
+                word += get_char();
+                col_global++;
+                word += get_char();
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+            else {
+                cout << "falta ponerle algo mas al \\ no querras decir \\n?" << endl;
+            }
         }
+
+        else if (letter == '+') {
+            if (peek_char() == '+') {
+                word += get_char();
+                col_global++;
+                word += get_char();
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+            else {
+                word += get_char();
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+        }
+
+        else if (letter == '-') {
+            if (peek_char() == '-') {
+                word += get_char();
+                col_global++;
+                word += get_char();
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+            else if (Find_int(peek_char()) == true) {
+                word += get_char();
+                col_global++;
+                bool valid_identifier = true;
+                while (Find_int(peek_char()) == true || !Find_symbol(peek_char())) {
+                    word += get_char();
+                    col_global++;
+                    if (!Find_int(peek_actual_char()) && !Find_symbol(peek_actual_char())) {
+                        valid_identifier = false;
+                    }
+                }
+                word += get_char();
+                col_global++;
+                if (valid_identifier) {
+                    cout << word << " TOKEN_NUM" << endl;
+                }
+                else {
+                    cout << "Error: Número inválido '" << word << endl;
+                }
+            }
+            else {
+                word += get_char();
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+        }
+        else if (letter == '[') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+
+        else if (letter == ']') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+        else if (letter == '(') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+
+        else if (letter == ')') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+            }
+        else if (letter == '{') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+        else if (letter == '}') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+        else if (letter == '^') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+        else if (letter == '*') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+        else if (letter == '%') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+        else if (letter == '<') {
+            
+            if (peek_char() == '=') {
+                word += get_char();
+                word += get_char();
+                col_global++;
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+            else
+            {
+                word += get_char();
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+        }
+        else if (letter == '>') {
+            
+            if (peek_char() == '=') {
+                word += get_char();
+                word += get_char();
+                col_global++;
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+            else
+            {
+                word += get_char();
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+        }
+        else if (letter == '!') {
+            
+            
+            if (peek_actual_char() == '=') {
+                word += get_char();
+                word += get_char();
+                col_global++;
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+            else
+            {
+                word += get_char();
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+        }
+        else if (letter == '=') {
+            
+            if (peek_char() == '=') {
+                word += get_char();
+                word += get_char();
+                col_global++;
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+            else
+            {
+                word += get_char();
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+        }
+        else if (letter == '&') {
+
+            if (peek_char() == '&') {
+                word += get_char();
+                word += get_char();
+                col_global++;
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+            else
+            {
+                word += get_char();
+                col_global++;
+                cout << "No querras decir && en lugar de " << word << "?" << endl;
+            }
+        }
+
+        else if (letter == '|') {
+            if (peek_char() == '|') {
+                word += get_char();
+                word += get_char();
+                col_global++;
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+            else
+            {
+                word += get_char();
+                col_global++;
+                cout << "No querras decir || en lugar de" << word << "?" << endl;
+            }
+        }
+
+        else if (letter == ';') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+
+        else if (letter == ':') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+        else if (letter == '\'') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+        else if (letter == '\"') {
+            word += get_char();  
+            col_global++;
+            word = "";
+            while (peek_actual_char() != '\"' && peek_actual_char() != '\n' && peek_actual_char() != '\0') {
+                word += get_char();
+                col_global++;
+            }
+            if (peek_actual_char() == '\"') {
+                cout << word << " TOKEN_TEXT_STRING" << endl;
+                word = "";
+                word += get_char();
+                col_global++;
+                cout << tokens_list[word] << endl;
+            }
+            else {
+                cout << "Error: String sin cerrar '" << word << "'" << endl;
+            }
+        }
+        else if (letter == ',') {
+            word += get_char();
+            col_global++;
+            cout << tokens_list[word] << endl;
+        }
+
     }
 }
 
 
 int main() {
-    string filename = "C:/codes/Compiladores/code.txt";
+
+    string filename = "code.txt";
     read_file(filename, text_Arr, sizee);
 
-    /*     if(text_Arr!=nullptr){
-            for (int i = 0; i < size;i++){
-                if (text_Arr[i] == '\n'){
-                    cout << "salto de linea" << endl;
-                }
-                else {
-                    cout << text_Arr[i];
-                }
-            }
-        } */
     scanner(text_Arr);
-
-    /*     cout<<Find_char('b')<<endl;
-        cout<<Find_char('5')<<endl;
-        cout<<Find_char('V')<<endl;
-        cout<<Find_char('_')<<endl;
-        cout<<Find_char('?')<<endl; */
-
     return 0;
 }
