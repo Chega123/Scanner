@@ -1,0 +1,26 @@
+[
+    {
+        "col": 5,
+        "line": 29,
+        "message": "@",
+        "type": "UnknownSymbolError"
+    },
+    {
+        "col": 21,
+        "line": 32,
+        "message": ".",
+        "type": "UnknownSymbolError"
+    },
+    {
+        "col": 6,
+        "line": 35,
+        "message": "&",
+        "type": "UnknownSymbolError"
+    },
+    {
+        "col": 6,
+        "line": 36,
+        "message": "|",
+        "type": "UnknownSymbolError"
+    }
+]

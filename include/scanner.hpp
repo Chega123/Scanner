@@ -2,12 +2,11 @@
 #define SCANNER_HPP
 
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <map>
-#include <nlohmann/json.hpp>
-
 
 class Token {
 public:
@@ -54,9 +53,9 @@ public:
   char peek_char();
   char peek_actual_char();
 
-  bool find_char(char a);
-  bool find_int(char a);
-  bool find_symbol(char a);
+  bool Find_char(char a);
+  bool Find_int(char a);
+  bool Find_symbol(char a);
 
   void handle_symbol(std::string word);
   void handle_single_line_comment();
