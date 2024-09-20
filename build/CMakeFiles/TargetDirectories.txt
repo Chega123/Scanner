@@ -1,0 +1,3 @@
+/Users/99/Code/cpp/Compilators/02/Scanner/build/CMakeFiles/scanner.dir
+/Users/99/Code/cpp/Compilators/02/Scanner/build/CMakeFiles/edit_cache.dir
+/Users/99/Code/cpp/Compilators/02/Scanner/build/CMakeFiles/rebuild_cache.dir

@@ -1,86 +1,251 @@
-#include <iostream>
-#include <cctype>  // for isalpha, isdigit
-#include <fstream>
-
 #include "scanner.hpp"
 
-scanner::scanner(const std::string& filename) : index(0) {
-  if (load_content(filename) == true) {
-    content_size = content.size();
-  } else {
-    content_size = 0;
-  } 
+Scanner::Scanner() : text_Arr(nullptr), index(0), sizee(0),
+                     line_global(1), col_global(1) {
+  tokens_list = { 
+    {"boolean","TOKEN_BOOLEAN"}, {"char","TOKEN_CHAR"}, {"array","TOKEN_ARRAY"}, 
+    {"else","TOKEN_ELSE"}, {"false","TOKEN_FALSE"}, {"for","TOKEN_FOR"}, 
+    {"function","TOKEN_FUNCTION"}, {"if","TOKEN_IF"}, {"integer","TOKEN_INTEGER"}, 
+    {"print","TOKEN_PRINT"}, {"return","TOKEN_RETURN"}, {"string","TOKEN_STRING"}, 
+    {"true","TOKEN_TRUE"}, {"void","TOKEN_VOID"}, {"while","TOKEN_WHILE"},
+    {"[","TOKEN_["}, {"]","TOKEN_]"}, {"(","TOKEN_("}, {")","TOKEN_)"},
+    {"++","TOKEN_++"}, {"--","TOKEN_--"}, {"-","TOKEN_NEGNUM"}, {"!","TOKEN_NEGEXPR"},
+    {"^","TOKEN_EXPONEN"}, {"*","TOKEN_MULT"}, {"/","TOKEN_DIV"}, {"%","TOKEN_MOD"},
+    {"+","TOKEN_SUM"}, {"-","TOKEN_SUB"}, {"<","TOKEN_<"}, {"<=","TOKEN_<="}, 
+    {">","TOKEN_>"}, {">=","TOKEN_>="}, {"==","TOKEN_=="}, {"!=","TOKEN_!="}, 
+    {"=","TOKEN_="}, {"&&","TOKEN_AND"}, {"||","TOKEN_OR"}, {";","TOKEN_;"},
+    {"\'","TOKEN_COMILLA"}, {"\"","TOKEN_COMILLA_DOBLE"}, {",","TOKEN_,"},
+    {"//","TOKEN_COMLINE"}, {"{","TOKEN_{"}, {"}","TOKEN_}"}, {":","TOKEN_:"},
+    {"/*","TOKEN_COMBLOCKS"}, {"*/","TOKEN_COMBLOCKE"}
+  };
 }
 
-bool scanner::load_content(const std::string& filename) {
+Scanner::~Scanner() {
+  delete[] text_Arr;
+}
+
+void Scanner::read_file(const std::string& filename) {
   std::ifstream file(filename, std::ios::binary | std::ios::ate);
-
   if (file.is_open()) {
-    std::streamsize size = file.tellg();
+    sizee = file.tellg();
     file.seekg(0, std::ios::beg);
-
-    content.resize(size);
-    if (file.read(&content[0], size)) {
-      file.close();
-      return true;
-    } else {
-      std::cerr << "No se puede leer el archivo :c" << std::endl;
-      content.clear();
-      return false;
-    }
+    text_Arr = new char[sizee];
+    file.read(text_Arr, sizee);
+    file.close();
   } else {
     std::cerr << "No se puede abrir el archivo :c" << std::endl;
-    content.clear();
-    return false;
+    text_Arr = nullptr;
+    sizee = 0;
   }
 }
 
-char scanner::get_char() {
-  if (index < content_size)
-  return content[index++];
+void Scanner::add_token(std::string token_name, std::string text) {
+  tokens.push_back(Token(token_name, text, line_global, col_global));
+}
+
+ void Scanner::log_error(std::string type, std::string message) {
+  errors.push_back(Error(type, message, line_global, col_global));
+}
+
+char Scanner::get_char() {
+  if (index < sizee) {
+    return text_Arr[index++];
+  }
   return '\0';
 }
 
-char scanner::peek_char(size_t peek) {
-  size_t next = index + peek;
-  if (next < content_size)
-  return content[next];
+char Scanner::peek_char() {
+  if (index + 1 < sizee) {
+    return text_Arr[index + 1];
+  }
   return '\0';
 }
 
-scanner_output scanner::gettoken() {
-  scanner_output classified_words;
-  if (content_size == 0)
-  return classified_words;
-  size_t line = 0, col = 0; index = 0;
-  char current_char = content[index];
-  std::string word = "";
-  const char space = ' ', carriage_return = '\r', line_feed = '\n';
-  while (index != content_size) {
-    if (current_char == space) {
-      get_char();
-      col++;
-    } else if (current_char == carriage_return || current_char == line_feed) {
-      get_char();
-      line++;
-      col = 0;
-    } else if (valid_char(current_char)) {
+char Scanner::peek_actual_char() {
+  if (index < sizee) {
+    return text_Arr[index];
+  }
+  return '\0';
+}
 
+bool Scanner::Find_char(char a) {
+  return (isalpha(a) || int(a) == 95);
+}
+
+bool Scanner::Find_int(char a) {
+  return isdigit(a);
+}
+
+bool Scanner::Find_symbol(char a) {
+  std::string symbols = "[]+-*/%=!&|<>;:{}() \'\",\n\r\0\\";
+  return symbols.find(a) != std::string::npos || a == '\0';
+}
+
+void Scanner::handle_symbol(std::string word) {
+  if (tokens_list.find(word) != tokens_list.end()) {
+    add_token(tokens_list[word], word);
+  } else {
+    std::cout << "Error: Unknown symbol '" << word << "'" << std::endl;
+  }
+}
+
+void Scanner::handle_single_line_comment() {
+  std::string comment = "";
+  while (peek_actual_char() != '\n' && peek_actual_char() != '\0') {
+    comment += get_char();
+  }
+  add_token("TOKEN_COMLINE", comment);
+}
+
+void Scanner::handle_block_comment() {
+  std::string comment = "/";
+  get_char();
+  col_global++;
+  while (peek_actual_char() != '\0') {
+    comment += get_char();
+    col_global++;
+    if (peek_actual_char() == '*' && peek_char() == '/') {
+      comment += get_char();
+      comment += get_char();
+      break;
+    }
+  }
+  if (comment.substr(comment.size() - 2) != "*/") {
+    log_error("UnclosedCommentError", "Unclosed block comment");
+  } else {
+    add_token("TOKEN_COMBLOCK", comment);
+  }
+}
+
+void Scanner::handle_string() {
+  std::string word;
+  get_char();
+  col_global++;
+  while (peek_actual_char() != '\"' && peek_actual_char() != '\n' && peek_actual_char() != '\0') {
+    if (peek_actual_char() == '\\' && peek_char() == '\"') {
+      word += get_char();
+    }
+    word += get_char();
+    col_global++;
+  }
+  if (peek_actual_char() == '\"') {
+    add_token("TOKEN_TEXT_STRING", word);
+    get_char();
+    col_global++;
+  } else {
+    std::cout << "Error: Unclosed string '" << word << "'" << std::endl;
+  }
+}
+
+void Scanner::scanner() {
+  std::string word;
+  char letter;
+  while (index < sizee) {
+    letter = peek_actual_char();
+    word = "";
+
+    if (letter == '#') { break; }
+
+    if (letter == '\n' || letter == ' ' || letter == '\r') {
+      get_char();
+      if (letter == '\n') { line_global++; col_global = 1; }
+      continue;
     }
 
+    if (letter == '/' && peek_char() == '/') {
+      handle_single_line_comment();
+      continue;
+    }
+
+    if (letter == '/' && peek_char() == '*') {
+      handle_block_comment();
+      continue;
+    }
+
+    if (Find_char(letter)) {
+      bool valid_identifier = true;
+      while (Find_char(peek_char()) || Find_int(peek_char())) {
+        word += get_char();
+        col_global++;
+      }
+      word += get_char();
+      col_global++;
+      if (tokens_list.find(word) != tokens_list.end()) {
+        add_token(tokens_list[word], word);
+      } else if (valid_identifier) {
+        add_token("TOKEN_ID", word);
+      } else {
+        log_error("InvalidIdentifierError", "Invalid identifier: " + word);
+      }
+    } else if (Find_int(letter)) {
+      bool valid_number = true;
+      while (Find_int(peek_char())) {
+        word += get_char();
+        col_global++;
+      }
+      word += get_char();
+      col_global++;
+      if (valid_number) {
+        add_token("TOKEN_NUM", word);
+      } else {
+        log_error("InvalidNumberError", "Invalid number: " + word);
+      }
+    } else if (letter == '\"') {
+      handle_string();
+    } else {
+      word += get_char();
+      col_global++;
+      handle_symbol(word);
+    }
   }
-  return classified_words;
+  save_errors_to_json();
+  save_tokens_to_json();
 }
 
-
-bool scanner::valid_char(char c) {
-  return (isalpha(c) || c == '_');
+std::vector<Token> Scanner::get_tokens() {
+  return tokens;
 }
 
-bool scanner::valid_int(char c) {
-  return isdigit(c);
+using json = nlohmann::json;
+
+void Scanner::save_errors_to_json(const std::string& filename) {
+  json error_log;
+  for (const auto& err : errors) {
+    json error_entry = {
+      {"type", err.type},
+      {"message", err.message},
+      {"line", err.line},
+      {"col", err.col}
+    };
+    error_log.push_back(error_entry);
+  }
+
+  std::ofstream file(filename);
+  if (file.is_open()) {
+    file << error_log.dump(4);
+    file.close();
+  } else {
+    std::cerr << "Failed to open " << filename << " for writing." << std::endl;
+  }
 }
 
-bool scanner::valid_symbol(char a) {
-  return language.symbols.find(a) != language.symbols.end();
+void Scanner::save_tokens_to_json(const std::string& filename) {
+  json token_list;
+  for (const auto& tok : tokens) {
+    json token_entry = {
+      {"token_name", tok.token_name},
+      {"text", tok.text},
+      {"line", tok.line},
+      {"col", tok.col}
+    };
+    token_list.push_back(token_entry);
+  }
+
+  std::ofstream file(filename);
+  if (file.is_open()) {
+    file << token_list.dump(4);
+    file.close();
+  } else {
+    std::cerr << "Failed to open " << filename << " for writing." << std::endl;
+  }
 }
