@@ -68,15 +68,15 @@ char Scanner::peek_actual_char() {
   return '\0';
 }
 
-bool Scanner::Find_char(char a) {
+bool Scanner::find_char(char a) {
   return (isalpha(a) || int(a) == 95);
 }
 
-bool Scanner::Find_int(char a) {
+bool Scanner::find_int(char a) {
   return isdigit(a);
 }
 
-bool Scanner::Find_symbol(char a) {
+bool Scanner::find_symbol(char a) {
   std::string symbols = "[]+-*/%=!&|<>;:{}() \'\",\n\r\0\\";
   return symbols.find(a) != std::string::npos || a == '\0';
 }
@@ -85,7 +85,7 @@ void Scanner::handle_symbol(std::string word) {
   if (tokens_list.find(word) != tokens_list.end()) {
     add_token(tokens_list[word], word);
   } else {
-    std::cout << "Error: Unknown symbol '" << word << "'" << std::endl;
+    log_error("UnknownSymbolError'",word);
   }
 }
 
@@ -133,7 +133,7 @@ void Scanner::handle_string() {
     get_char();
     col_global++;
   } else {
-    std::cout << "Error: Unclosed string '" << word << "'" << std::endl;
+    log_error("UnclosedStringError", word);
   }
 }
 
@@ -162,9 +162,9 @@ void Scanner::scanner() {
       continue;
     }
 
-    if (Find_char(letter)) {
+    if (find_char(letter)) {
       bool valid_identifier = true;
-      while (Find_char(peek_char()) || Find_int(peek_char())) {
+      while (find_char(peek_char()) || find_int(peek_char())) {
         word += get_char();
         col_global++;
       }
@@ -177,9 +177,9 @@ void Scanner::scanner() {
       } else {
         log_error("InvalidIdentifierError", "Invalid identifier: " + word);
       }
-    } else if (Find_int(letter)) {
+    } else if (find_int(letter)) {
       bool valid_number = true;
-      while (Find_int(peek_char())) {
+      while (find_int(peek_char())) {
         word += get_char();
         col_global++;
       }
